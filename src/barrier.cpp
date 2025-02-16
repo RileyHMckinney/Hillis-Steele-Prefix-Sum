@@ -7,7 +7,7 @@
 
 using namespace std;
 
-//create a wall of size m in shared memory
+//create an array of size m in shared memory
 void wall_create(int &shm_wall_id, int *&wall, int m){
     //allocate shared memory for wall[]
     shm_wall_id = shmget(IPC_PRIVATE, m * sizeof(int), IPC_CREAT | 0666);

@@ -3,6 +3,10 @@
 #include <cstdlib> 
 #include <string>
 #include <sstream>
+#include <sys/types.h> 
+#include <sys/wait.h>  
+#include <unistd.h>     
+#include <cmath>
 #include "../include/validate.h"
 #include "../include/barrier.h"
 #include "../include/io_handling.h"
@@ -26,7 +30,37 @@ int main(int argc, char *argv[]){
     int *arr;
     read_input(shm_arr_id, arr, n, input_file);
 
-    //create m child processes
+    //calc the size of each chunk/remainder
+    int chunk = n/m;
+    int remainder = n%m;
+
+    pid_t pid[m];
+    for(int i = 0; i < m; i++){
+        pid[i] = fork(); //create m child processes
+
+        if(pid[i] < 0){
+            cerr << "Error: Failed to fork." << endl;
+            exit(EXIT_FAILURE);
+        } else if (pid[i] == 0) {//child process
+            int start = i * chunk;
+            int end;
+            if (i < remainder) {
+                start += i;  // Add offset for first 'remainder' processes
+                end = start + chunk + 1;
+            } else {
+                start += remainder; // Offset by remainder
+                end = start + chunk;
+            }
+
+            exit(0); //exit child process
+        }
+
+    }
+
+    //parent waits for all child processes
+    for(int i = 0; i < m; i++){
+        waitpid(pid[i], NULL, 0);
+    }
 
     //write arr to output_file
     write_output(output_file, arr, n);
