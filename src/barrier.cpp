@@ -7,43 +7,39 @@
 
 using namespace std;
 
-//create an array of size m in shared memory
-void wall_create(int &shm_wall_id, int *&wall, int m){
-    //allocate shared memory for wall[]
-    shm_wall_id = shmget(IPC_PRIVATE, m * sizeof(int), IPC_CREAT | 0666);
-    if (shm_wall_id == -1) {
+// Create shared memory for barrier control variables (also used to create a temp array)
+void shm_arr_create(int &shm_id, int *&arr, int size) {
+    // Allocate shared memory for an array of `size` integers
+    shm_id = shmget(IPC_PRIVATE, size * sizeof(int), IPC_CREAT | 0666);
+    if (shm_id == -1) {
         cerr << "Error: Failed to allocate shared memory" << endl;
         exit(EXIT_FAILURE);
     }
 
-    //attach shared memory to the process address space
-    wall = (int *)shmat(shm_wall_id, NULL, 0);
-    if(wall == (int *)-1){
-        cerr << "Error: Failed to attach barrier shared memory." << endl;
+    // Attach the shared memory
+    arr = (int *)shmat(shm_id, NULL, 0);
+    if (arr == (int *)-1) {
+        cerr << "Error: Failed to attach shared memory." << endl;
         exit(EXIT_FAILURE);
     }
 
-    //initialize wall[] to '0's
-    for(int i = 0; i < m; i++){
-        wall[i] = 0;
-    }
+    // Initialize the shared memory to zero
+    memset(arr, 0, size * sizeof(int));
 }
 
-//increment wall counter and wait for other processes
-void wall_use(int *wall, int i, int m){
-    wall[i] += 1; //increment wall at i
-
-    bool done = false; //assume not done
-    while(!done){   //if not done
-        done = true;    //assume done
-        //if a process is not done, done = false
-        for(int j = 0; j < m; j++){ 
-            if(wall[j] < wall[i]){
-                done = false; 
-                break;
-            }
+// Function to enforce the barrier
+void wall_use(int *barrier_vars, int process_number, int m) {
+    while (true) {
+        if (barrier_vars[0] == process_number) { // Check if it's this process's turn
+            barrier_vars[1] += 1; // Increment barrier count
+            barrier_vars[0] += 1; // Move to the next process
+            break; // Exit once updated
         }
-        //sleep
-        if(!done) sleep(1);
+        sleep(1); // Wait if not its turn
+    }
+
+    // Wait for all processes to reach the barrier
+    while (barrier_vars[1] < m) {
+        sleep(1);
     }
 }

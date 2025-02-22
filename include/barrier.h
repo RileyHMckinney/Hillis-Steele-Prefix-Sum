@@ -1,7 +1,7 @@
 #ifndef BARRIER_H
 #define BARRIER_H
 
-void wall_create(int &shm_wall_id, int *&wall, int m);
-void wall_use(int *wall, int i, int m);
+void shm_arr_create(int &shm_id, int *&arr, int size);
+void wall_use(int *barrier_vars, int process_number, int m);
 
 #endif // BARRIER_H
