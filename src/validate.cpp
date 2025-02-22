@@ -89,6 +89,7 @@ void validate_n_m(int n, int m){
 
     //Check if m is greater than the number of available cores
     int available_cores = thread::hardware_concurrency(); //<-- may not work on utd virtual system
+    cout << "Available_cores = " << available_cores << endl;
     if(m > available_cores){
         cerr << "Warning: Requested processes (" << m << ") is greater than available cores (" << available_cores << ")." << endl;
     }
