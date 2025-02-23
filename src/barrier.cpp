@@ -28,15 +28,6 @@ void shm_arr_create(int &shm_id, int *&arr, int size) {
 }
 
 // Function to enforce the barrier
-#include <iostream>
-#include <sys/shm.h>
-#include <sys/types.h>
-#include <unistd.h>  // for usleep
-#include <cstdlib>
-#include "../include/barrier.h"
-
-using namespace std;
-
 void wall_use(int *barrier_vars, int process_number, int m) {
     if (m == 1) return; // No need for a barrier if there's only one process
 
