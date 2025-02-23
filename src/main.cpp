@@ -20,7 +20,7 @@ int main(int argc, char *argv[]){
     //validate command line arguments
     validate_arguments(argc, argv, n, m, input_file, output_file);
 
-    //create shared memory for the barrier (array of size 2)
+    //create shared memory for the barrier
     int barrier_size = 2;
     int shm_barrier_id;
     int *barrier_vars;
@@ -60,7 +60,49 @@ int main(int argc, char *argv[]){
                 end = start + chunk;
             }
 
-            exit(0); //exit child process
+            // Perform Hillis and Steele’s prefix sum algorithm
+            for (int p = 1; p <= log2(n); p++) {
+                int offset = 1 << (p - 1); // Compute 2^(p-1)
+            
+                cout << "Process " << i << " starting iteration " << p << " with offset " << offset << endl;
+            
+                // **Perform Computation BEFORE hitting the barrier**
+                for (int j = start; j < end; j++) {
+                    if (j >= offset) {
+                        temparr_vars[j] = arr[j] + arr[j - offset]; // Compute prefix sum
+                    } else {
+                        temparr_vars[j] = arr[j]; // Copy unchanged values
+                    }
+                }
+            
+                cout << "Process " << i << " completed iteration " << p << ". Temp array state:\n";
+                for (int j = 0; j < n; j++) {
+                    cout << temparr_vars[j] << " ";
+                }
+                cout << endl;
+            
+                // **Barrier AFTER computation, ensuring all processes finish their updates before moving on**
+                wall_use(barrier_vars, i, m);
+            
+                // **Process 0 copies temp_arr back to arr**
+                if (i == 0) {
+                    for (int j = 0; j < n; j++) {
+                        arr[j] = temparr_vars[j];
+                    }
+                    cout << "Process 0 copied temp_arr to arr. Updated array state:\n";
+                    for (int j = 0; j < n; j++) {
+                        cout << arr[j] << " ";
+                    }
+                    cout << endl;
+                }
+            
+                // **Final barrier ensures all processes see the updated arr[] before next iteration**
+                wall_use(barrier_vars, i, m);
+            }
+            
+            cout << "Process " << i << " finished all iterations!" << endl;
+            exit(0); // Ensure process exits
+            
         }
 
     }
