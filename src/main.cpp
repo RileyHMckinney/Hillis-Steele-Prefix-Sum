@@ -18,7 +18,7 @@ int main(int argc, char *argv[]){
     string input_file, output_file;
 
     //validate command line arguments
-    validate_arguments(argc, argv, n, m, input_file, output_file);
+    m = validate_arguments(argc, argv, n, m, input_file, output_file);
 
     //create shared memory for the barrier
     int barrier_size = 2;
@@ -75,7 +75,7 @@ int main(int argc, char *argv[]){
                     }
                 }                
             
-                // **🚨 Barrier to Ensure All Processes Finish Computation Before Copying**
+                //Barrier to Ensure All Processes Finish Computation Before Copying**
                 wall_use(barrier_vars, i, m);
             
                 // **Process m-1 copies `temp_arr[]` to `arr[]` after all computations are finished**
@@ -85,7 +85,7 @@ int main(int argc, char *argv[]){
                     }
                 }
             
-                // **🚨 Final Barrier to Ensure All Processes See the Updated arr[]**
+                //Final Barrier to Ensure All Processes See the Updated arr[]**
                 wall_use(barrier_vars, i, m);
             }
             exit(0); // Ensure process exits

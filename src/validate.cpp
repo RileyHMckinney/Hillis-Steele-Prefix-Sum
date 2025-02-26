@@ -8,7 +8,7 @@
 using namespace std;
 
 //validates the input arguments
-void validate_arguments(int argc, char *argv[], int &n, int &m, string &input_file, string &output_file){
+int validate_arguments(int argc, char *argv[], int &n, int &m, string &input_file, string &output_file){
     //check that valid number of arguments entered 
     if(argc != 5){
         cerr << "Usage: " << argv[0] << " <n> <m> <input_filename.txt> <output_filename.txt>" <<endl;
@@ -25,7 +25,7 @@ void validate_arguments(int argc, char *argv[], int &n, int &m, string &input_fi
     }
     
     //Check if n and m are valid
-    validate_n_m(n, m);
+    m = validate_n_m(n, m);
 
     input_file = argv[3];
     output_file = argv[4];
@@ -43,6 +43,9 @@ void validate_arguments(int argc, char *argv[], int &n, int &m, string &input_fi
         }
         exit(EXIT_FAILURE);
     }
+
+    //return the value of m, in the event that m is changed by validate-n-m()
+    return m;
 }
 
 //checks if the filename exists and contains at least n numbers
@@ -68,16 +71,10 @@ bool exists_and_enough_numbers(int n, const string &filename, bool &fileExists){
     return true; //n numbers were found in the file
 }
 
-void validate_n_m(int n, int m){
+int validate_n_m(int n, int m){
     //check if n and m are greater than 0
     if(n <= 0 || m <= 0){
         cerr << "Error: n and m must be greater than 0" << endl;
-        exit(EXIT_FAILURE);
-    }
-
-    //check that m is not greater than n
-    if(m > n){
-        cerr << "Error: Number of processes (m) is greater than number of values (n)" << endl;
         exit(EXIT_FAILURE);
     }
 
@@ -87,12 +84,21 @@ void validate_n_m(int n, int m){
         exit(EXIT_FAILURE);
     }
 
+    //check that m does not exceed n
+    if(m > n){
+        cerr << "Warning: Requested processes (" << m 
+            << ") is greater than number of elements in input array (" << n << ")." << endl;
+        m = n;
+    }
+
     //Check if m is greater than the number of available cores
     int available_cores = thread::hardware_concurrency(); //<-- may not work on utd virtual system
     cout << "Available_cores = " << available_cores << endl;
     if(m > available_cores){
         cerr << "Warning: Requested processes (" << m << ") is greater than available cores (" << available_cores << ")." << endl;
     }
+
+    return m;
 }
 
 //ensures that the input and output files are valid 
