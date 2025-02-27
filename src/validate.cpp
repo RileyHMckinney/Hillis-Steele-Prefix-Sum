@@ -3,11 +3,20 @@
 #include <cstdlib>
 #include <string>
 #include <thread>
+#include <stdexcept>
 #include "../include/validate.h"
 
 using namespace std;
 
-//validates the input arguments
+
+/* validates the input arguments
+    - argc - the argument count
+    - *argv[] - the array of arguments
+    - &n - the number of values to be read
+    - &m - the number of processes 
+    - &input-file - the input file name
+    - &output-file - the output file name
+*/
 int validate_arguments(int argc, char *argv[], int &n, int &m, string &input_file, string &output_file){
     //check that valid number of arguments entered 
     if(argc != 5){
@@ -19,6 +28,7 @@ int validate_arguments(int argc, char *argv[], int &n, int &m, string &input_fil
     try {
         n = stoi(argv[1]);
         m = stoi(argv[2]);
+
     } catch (exception &e) {
         cerr << "Error: n and m must be integer values" << endl;
         exit(EXIT_FAILURE);
@@ -48,7 +58,11 @@ int validate_arguments(int argc, char *argv[], int &n, int &m, string &input_fil
     return m;
 }
 
-//checks if the filename exists and contains at least n numbers
+/*checks if the filename exists and contains at least n numbers
+    - n - the number of values read
+    - &filename - the filename
+    - &fileExists - the boolean for if a file exists 
+*/
 bool exists_and_enough_numbers(int n, const string &filename, bool &fileExists){
     //Establish filename as the input file
     ifstream infile(filename);
@@ -92,8 +106,7 @@ int validate_n_m(int n, int m){
     }
 
     //Check if m is greater than the number of available cores
-    int available_cores = thread::hardware_concurrency(); //<-- may not work on utd virtual system
-    cout << "Available_cores = " << available_cores << endl;
+    int available_cores = thread::hardware_concurrency(); //works on utd server
     if(m > available_cores){
         cerr << "Warning: Requested processes (" << m << ") is greater than available cores (" << available_cores << ")." << endl;
     }
@@ -101,7 +114,10 @@ int validate_n_m(int n, int m){
     return m;
 }
 
-//ensures that the input and output files are valid 
+/*ensures that the input and output files are valid 
+    - &input_file - the input file name
+    - &output_file - the output file name
+*/
 void validate_io_files(const string &input_file,const string &output_file){
     //check that input_file and output_file are not empty or only whitespace
     if(input_file.empty() || output_file.empty() || isWhitespaceOnly(input_file) || isWhitespaceOnly(output_file)){
@@ -124,7 +140,9 @@ void validate_io_files(const string &input_file,const string &output_file){
     test_out.close();
 }
 
-//checks to see if a string consists only of whitespace
+/*checks to see if a string consists only of whitespace
+    - $s - a string
+*/
 bool isWhitespaceOnly(const string &s){
     for (char c : s) {
         if (!isspace(c)) return false;  //a non-whitespace character exists

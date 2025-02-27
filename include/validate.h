@@ -3,7 +3,7 @@
 
 #include <string>
 
-const int MAX_N = 1000000000; //sets the maximum 'n' to one billion
+const int MAX_N = 10000000; //sets the maximum 'n' to ten million
 
 int validate_arguments(int argc, char *argv[], int &n, int &m, std::string &input_file, std::string &output_file);
 bool exists_and_enough_numbers(int n, const std::string &filename, bool &fileExists);

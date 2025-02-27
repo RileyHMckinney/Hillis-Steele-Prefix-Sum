@@ -8,7 +8,13 @@
 
 using namespace std;
 
-//reads 'n' integers from input_file into a shared memory array 'arr'
+/*creates shared memory array "arr", 
+  reads 'n' integers from input_file into a shared memory array 'arr'
+    - &shm_id - reference to the shared memory id
+    - *&arr - the array pointer passed by reference
+    - n - number of integers to be read
+    - &input_file - the name of the input file
+*/
 void read_input(int &shm_id, int *&arr, int n, const string &input_file){
     // Allocate shared memory for the prefix sum array
     shm_id = shmget(IPC_PRIVATE, n * sizeof(int), IPC_CREAT | 0666);
@@ -32,7 +38,11 @@ void read_input(int &shm_id, int *&arr, int n, const string &input_file){
     infile.close(); //close the input_file filestream
 }
 
-//writes a shared memory array 'arr' into output_file
+/*writes a shared memory array 'arr' into output_file
+    - &output_file - the output filename
+    - *arr - array pointer
+    - n - number of values printed to the output file
+*/
 void write_output(const string &output_file, int *arr, int n){
     //establish output_file stream
     ofstream outfile(output_file);
@@ -50,7 +60,10 @@ void write_output(const string &output_file, int *arr, int n){
     outfile.close();
 }
 
-//free the memory used by the barrier
+/*destroys a shared memory array with memory id "shm_id" and address "shm_ptr"
+    - shm_id - the shared memory id
+    - shm-ptr - the pointer to the shared memory
+*/
 void destroy_shared_mem(int shm_id, int *shm_ptr){
     //detach shared mem from process
     if (shmdt(shm_ptr) == -1) {

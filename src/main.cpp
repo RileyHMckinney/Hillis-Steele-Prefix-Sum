@@ -1,3 +1,21 @@
+/*Name: Riley McKinney, Date: 02/26/2025
+
+The purpose of this program is to use parallel processing to perform the Hillis and Steele
+concurrent algorithm on an array of integers in an input file and print the resultant 
+array to an output file. 
+
+IMPORTANT: The maximum number of integers 'n' is defined in validate.h as "MAX_N" and is set 
+to 10,000,000 by default.
+
+Purpose of each file:
+- main.cpp - driving program
+- barrier.cpp - functions for creating an maintaining a barrier, ensures that each process
+    is on the same "round" or "cycle" during the Hillis and Steele algorithm
+- io-handling.cpp - creates shared memory array for the input file, prints an array to 
+    an output file, and destroys shared memory arrays
+- validate.cpp - validates the user input parameters
+*/
+
 #include <iostream>
 #include <fstream>
 #include <cstdlib> 
@@ -52,6 +70,8 @@ int main(int argc, char *argv[]){
         } else if (pid[i] == 0) {//child process
             int start = i * chunk;
             int end;
+
+            //calculate start and end indices 
             if (i < remainder) {
                 start += i;  // Add offset for first 'remainder' processes
                 end = start + chunk + 1;
@@ -61,12 +81,11 @@ int main(int argc, char *argv[]){
             }
 
             // Perform Hillis and Steele’s prefix sum algorithm
-            for (int p = 1; p <= log2(n) + 1; p++) {
-                int offset = 1 << (p - 1); // Compute 2^(p-1)
-
-                //wall_use(barrier_vars, i, m);
+            //  Algorithm runs log2(n) + 1 times to account for non-power of two values
+            for (int p = 1; p <= log2(n) + 1; p++) { 
+                int offset = pow(2, p - 1); // Compute 2^(p-1)
             
-                // **Perform Computation**
+                //Adding correctly spaced values from previous array to temparr
                 for (int j = start; j < end; j++) {
                     if (j >= offset) {
                         temparr_vars[j] = arr[j] + arr[j - offset]; 
@@ -75,17 +94,17 @@ int main(int argc, char *argv[]){
                     }
                 }                
             
-                //Barrier to Ensure All Processes Finish Computation Before Copying**
+                //1st Barrier Call: ensures temparr is fully populated
                 wall_use(barrier_vars, i, m);
             
-                // **Process m-1 copies `temp_arr[]` to `arr[]` after all computations are finished**
+                //final process copies temparr back into arr
                 if (i == m - 1) {
                     for (int j = 0; j < n; j++) {
                         arr[j] = temparr_vars[j];
                     }
                 }
             
-                //Final Barrier to Ensure All Processes See the Updated arr[]**
+                //2nd Barrier Call: ensures all processes will read updated arr
                 wall_use(barrier_vars, i, m);
             }
             exit(0); // Ensure process exits
@@ -96,10 +115,13 @@ int main(int argc, char *argv[]){
 
     //parent waits for all child processes
     for(int i = 0; i < m; i++){
-        waitpid(pid[i], NULL, 0);
+        if (waitpid(pid[i], NULL, 0) == -1) {
+            perror("Error: waitpid failed");
+            exit(EXIT_FAILURE);
+        }
     }
 
-    //write arr to output_file
+    //write finished array 'arr' to output_file
     write_output(output_file, arr, n);
 
     //free the shared memory for the barrier and the array
